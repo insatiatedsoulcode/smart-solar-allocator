@@ -1,0 +1,44 @@
+name: Selenium UI Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  selenium-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1️⃣ Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2️⃣ Install system dependencies (Chrome & driver)
+    - name: Install Chrome
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip xvfb
+        wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+
+    # 3️⃣ Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    # 4️⃣ Install Python dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest selenium webdriver-manager streamlit
+
+    # 5️⃣ Run UI tests
+    - name: Run Selenium tests (headless Chrome)
+      run: |
+        # Use xvfb to provide a virtual display
+        xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pytest -q tests/test_streamlit_ui.py
+
